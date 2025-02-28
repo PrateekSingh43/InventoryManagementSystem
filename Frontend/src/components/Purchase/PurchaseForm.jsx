@@ -6,18 +6,13 @@ import { formClasses } from '../common/FormStyles';
 import { modalStyles } from '../common/ModalStyles';
 import { toast } from 'react-hot-toast';
 import { getCurrentCounter } from '../../utils/invoiceGenerator';
-import { productsList, bagSizes } from '../../data/products';
+import { productsList } from '../../data/products';
 import { 
-  formatDate, 
-  getCurrentDate, 
-  formatDateForInput, 
-  formatDateForDisplay, 
-  getFormattedToday 
-} from '../../utils/date';
-import { 
-  formatForInput, 
-  formatForStorage, 
-  getCurrentDateFormatted 
+  formatDate,
+  formatDisplayDate,
+  convertToInputDate,
+  convertFromInputDate,
+  getCurrentDate
 } from '../../utils/dateUtils';
 
 const PurchaseForm = ({ onClose, initialData, isEdit }) => {
@@ -29,7 +24,7 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
       supplierName: initialData?.supplier || '',
       supplierAddress: initialData?.supplierAddress || '',
       invoiceNumber: initialData?.orderNumber || '',
-      date: formatForInput(initialData?.date) || formatForInput(getCurrentDateFormatted()),
+      date: convertToInputDate(initialData?.date || getCurrentDate()),
       items: initialData?.items || [{
         productId: '',
         productName: '',
@@ -37,7 +32,7 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
         pricePerQuintal: '',
         quantity: ''
       }],
-      paymentDate: formatDateForInput(new Date()),
+      paymentDate: convertToInputDate(getCurrentDate()),
       newPaymentAmount: '',
       paymentMethod: 'CASH',
       transactionId: ''
@@ -45,7 +40,7 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
       supplierName: '',
       supplierAddress: '',
       invoiceNumber: getCurrentCounter(), // Now visible on form load
-      date: formatForInput(getCurrentDateFormatted()),
+      date: convertToInputDate(getCurrentDate()),
       items: [{
         productId: '',
         productName: '',
@@ -123,10 +118,10 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
     try {
       const formattedData = {
         ...data,
-        date: formatForStorage(data.date),
-        // ... rest of the submission logic ...
+        date: convertFromInputDate(data.date), // Convert to dd-MM-yyyy
+        // ... other fields ...
       };
-      
+
       if (isEdit) {
         // Handle payment update
         const newPaymentAmount = parseFloat(data.newPaymentAmount) || 0;
@@ -143,7 +138,7 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
             amount: newPaymentAmount,
             type: data.paymentMethod,
             transactionRef: data.paymentMethod !== 'CASH' ? data.transactionId : null,
-            date: data.paymentDate
+            date: convertFromInputDate(data.paymentDate), // Store in dd-MM-yyyy
           };
 
           const updatedPayments = [...(initialData.paymentHistory || []), newPayment];
@@ -168,7 +163,7 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
         const purchaseData = {
           supplier: data.supplierName,
           supplierAddress: data.supplierAddress,
-          date: formatDateForDisplay(data.date),
+          date: convertFromInputDate(data.date), // Store in dd-MM-yyyy
           orderNumber: data.invoiceNumber,
           items: data.items.map(item => ({
             productName: item.productName,
@@ -182,7 +177,7 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
             amount: initialPayment,
             type: data.paymentMethod,
             transactionRef: data.paymentMethod !== 'CASH' ? data.transactionId : null,
-            date: formatDateForDisplay(data.date)
+            date: convertFromInputDate(data.date), // Store in dd-MM-yyyy
           }] : [],
           remainingAmount: runningTotals.amount - initialPayment,
           status: initialPayment >= runningTotals.amount ? 'paid' : 
@@ -324,342 +319,236 @@ const PurchaseForm = ({ onClose, initialData, isEdit }) => {
   );
 
   return (
-    <div className={modalStyles.overlay}>
-      <div className={modalStyles.container}>
-        <div className={modalStyles.content}>
-          <button onClick={onClose} className={modalStyles.closeButton}>
-            <X className="h-6 w-6" />
-          </button>
-          
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              {isEdit ? 'Update Payment' : 'New Purchase Order'}
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+      <div className="relative top-0 mx-auto p-5 w-full max-w-4xl">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              {isEdit ? 'Update Payment' : 'New Purchase'}
             </h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-              {isEdit ? (
-                <>
-                  {/* Purchase Details Section (Read-only) */}
-                  <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Order Number</label>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                          #{initialData.orderNumber}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Purchase Date</label>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {formatDateForInput(initialData.date)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Supplier Details</label>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {initialData.supplier}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {initialData.supplierAddress || 'No address provided'}
-                      </p>
-                    </div>
-
-                    {/* Items List */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-500 mb-2 block">
-                        Items Purchased
-                      </label>
-                      <div className="space-y-2">
-                        {initialData.items.map((item, idx) => (
-                          <div key={idx} className="bg-white dark:bg-gray-700/50 p-3 rounded-md">
-                            <div className="flex justify-between">
-                              <div>
-                                <p className="font-medium">{item.productName}</p>
-                                <p className="text-sm text-gray-500">
-                                  {item.bagSize}kg × {item.quantity} bags
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-medium">₹{item.pricePerQuintal}/qtl</p>
-                                <p className="text-sm text-gray-500">
-                                  Total: ₹{((item.bagSize * item.quantity * item.pricePerQuintal) / 100).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Payment Summary */}
-                    <div className="border-t pt-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Total Amount</label>
-                          <p className="text-xl font-bold text-gray-900 dark:text-white">
-                            ₹{initialData.totalAmount.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <label className="text-sm font-medium text-gray-500">Remaining Amount</label>
-                          <p className="text-xl font-bold text-red-600">
-                            ₹{calculateRemainingAmount().toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Payment History */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-500 mb-2 block">
-                        Payment History
-                      </label>
-                      <div className="space-y-2">
-                        {(initialData.paymentHistory || []).map((payment, idx) => (
-                          <div key={idx} className="bg-white dark:bg-gray-700/50 p-3 rounded-md">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium">₹{payment.amount.toLocaleString()}</p>
-                                <p className="text-sm text-gray-500">{payment.type}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm text-gray-500">
-                                  {formatDateForInput(payment.date)}
-                                </p>
-                                {payment.transactionRef && (
-                                  <p className="text-xs text-gray-500">
-                                    Ref: {payment.transactionRef}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Payment Update Form */}
-                  {calculateRemainingAmount() > 0 ? (
-                    <div className="border-t pt-4">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                        Update Payment
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className={formClasses.label}>Payment Amount</label>
-                          <input
-                            type="number"
-                            {...register('newPaymentAmount')}
-                            max={calculateRemainingAmount()}
-                            placeholder={`Max: ₹${calculateRemainingAmount().toLocaleString()}`}
-                            className={formClasses.input}
-                          />
-                        </div>
-                        <div>
-                          <label className={formClasses.label}>Payment Method</label>
-                          <select
-                            {...register('paymentMethod')}
-                            className={formClasses.select}
-                          >
-                            <option value="CASH">Cash</option>
-                            <option value="UPI">UPI</option>
-                            <option value="BANK_TRANSFER">Bank Transfer</option>
-                          </select>
-                        </div>
-                        
-                        {watch('paymentMethod') !== 'CASH' && (
-                          <div className="col-span-2">
-                            <label className={formClasses.label}>Transaction ID</label>
-                            <input
-                              type="text"
-                              {...register('transactionId')}
-                              placeholder="Enter transaction reference"
-                              className={formClasses.input}
-                            />
-                          </div>
-                        )}
-
-                        <div className="col-span-2">
-                          <label className={formClasses.label}>Payment Date</label>
-                          <input
-                            type="date"
-                            {...register('paymentDate')}
-                            className={formClasses.input}
-                            defaultValue={formatDateForInput(new Date())}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
-                      <p className="text-green-600 dark:text-green-400 font-medium">
-                        Full payment has been received for this purchase order
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Basic Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="col-span-2">
-                      <label className={formClasses.label}>Supplier Name</label>
-                      <input
-                        type="text"
-                        {...register('supplierName', { required: true })}
-                        className={`${formClasses.input} h-12`}
-                        placeholder="Enter supplier name"
-                      />
-                    </div>
-                    
-                    <div className="col-span-2">
-                      <label className={formClasses.label}>Supplier Address</label>
-                      <textarea
-                        {...register('supplierAddress')}
-                        rows={3}
-                        className={`${formClasses.input} h-12`}
-                        placeholder="Enter complete address"
-                      />
-                    </div>
-
-                    <div>
-                      <label className={formClasses.label}>Invoice Number</label>
-                      <input
-                        type="text"
-                        {...register('invoiceNumber')}
-                        className={`${formClasses.input} bg-gray-100 h-12`}
-                        readOnly
-                      />
-                    </div>
-
-                    <div>
-                      <label className={formClasses.label}>Purchase Date</label>
-                      <input
-                        type="date"
-                        {...register('date')}
-                        className={`${formClasses.input} h-12`}
-                        defaultValue={getFormattedToday()}
-                        onChange={(e) => {
-                          const formattedDate = formatDateForDisplay(e.target.value);
-                          setValue('date', e.target.value); // Keep the input value in yyyy-mm-dd
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Existing Items Section */}
-                  {!isEdit && (
-                    <>
-                      {/* Items Section */}
-                      <div>
-                        <div className="flex justify-between items-center mb-4">
-                          <label className={formClasses.label}>Items</label>
-                          <button
-                            type="button"
-                            onClick={() => append({
-                              productName: '',
-                              bagSize: '',
-                              pricePerQuintal: '',
-                              quantity: ''
-                            })}
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/50 dark:hover:bg-indigo-900/70 rounded-md transition-colors"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Item
-                          </button>
-                        </div>
-
-                        {/* Products List */}
-                        {fields.map((field, index) => renderItemFields(index, field))}
-
-                        {/* Main Totals Display - Show as soon as any item has data */}
-                        {watchedItems?.some(item => 
-                          item.bagSize || item.quantity || item.pricePerQuintal
-                        ) && (
-                          <div className="mt-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-sm text-gray-500">Total Weight</p>
-                                <p className="text-xl font-bold">{runningTotals.weight.toFixed(2)} kg</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm text-gray-500">Total Amount</p>
-                                <p className="text-xl font-bold">₹{runningTotals.amount.toLocaleString()}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Payment Section */}
-                      <div className="border-t pt-4 mt-6">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                          Payment Details
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className={formClasses.label}>Initial Payment</label>
-                            <input
-                              type="number"
-                              {...register('initialPayment')}
-                              max={runningTotals.amount}
-                              placeholder={`Max: ₹${runningTotals.amount.toLocaleString('en-IN')}`}
-                              className={formClasses.input}
-                            />
-                          </div>
-                          <div>
-                            <label className={formClasses.label}>Payment Method</label>
-                            <select
-                              {...register('paymentMethod')}
-                              className={formClasses.select}
-                            >
-                              <option value="CASH">Cash</option>
-                              <option value="UPI">UPI</option>
-                              <option value="BANK_TRANSFER">Bank Transfer</option>
-                            </select>
-                          </div>
-                          
-                          {watch('paymentMethod') !== 'CASH' && (
-                            <div className="col-span-2">
-                              <label className={formClasses.label}>Transaction ID</label>
-                              <input
-                                type="text"
-                                {...register('transactionId')}
-                                placeholder="Enter transaction reference"
-                                className={formClasses.input}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-
-              {/* Updated Form Actions */}
-              <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 mt-6">
-                <div className="flex justify-end space-x-4">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className={formClasses.cancelButton}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className={formClasses.submitButton}
-                  >
-                    {isEdit ? 'Update Payment' : 'Create Purchase'}
-                  </button>
+          {isEdit ? (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Order Number</label>
+                  <p className="text-lg font-medium text-gray-900">#{initialData.orderNumber}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Purchase Date</label>
+                  <p className="text-lg font-medium text-gray-900">{formatDate(initialData.date)}</p>
                 </div>
               </div>
+
+              {/* Items List */}
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-500 mb-3">Items Purchased</h3>
+                <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+                  {initialData.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between py-2">
+                      <div>
+                        <p className="font-medium">{item.productName}</p>
+                        <p className="text-sm text-gray-500">{item.bagSize}kg × {item.quantity} bags</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">₹{item.pricePerQuintal}/qtl</p>
+                        <p className="text-sm text-gray-500">
+                          Weight: {(item.bagSize * item.quantity).toFixed(2)} kg
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-right">
+                  <p className="text-sm text-gray-500">
+                    Total Amount: ₹{initialData.totalAmount.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Remaining: ₹{calculateRemainingAmount().toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Payment Update Section */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-medium mb-4">Update Payment</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={formClasses.label}>Payment Amount *</label>
+                    <input
+                      type="number"
+                      {...register('newPaymentAmount', { required: true })}
+                      max={calculateRemainingAmount()}
+                      className={formClasses.input}
+                      placeholder={`Max: ₹${calculateRemainingAmount().toLocaleString()}`}
+                    />
+                  </div>
+                  <div>
+                    <label className={formClasses.label}>Payment Method *</label>
+                    <select {...register('paymentMethod')} className={formClasses.select}>
+                      <option value="CASH">Cash</option>
+                      <option value="UPI">UPI</option>
+                      <option value="BANK_TRANSFER">Bank Transfer</option>
+                    </select>
+                  </div>
+                </div>
+
+                {watch('paymentMethod') !== 'CASH' && (
+                  <div className="mt-4">
+                    <label className={formClasses.label}>Transaction ID</label>
+                    <input
+                      type="text"
+                      {...register('transactionId')}
+                      className={formClasses.input}
+                      placeholder="Enter transaction reference"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button type="button" onClick={onClose} className={formClasses.cancelButton}>
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className={formClasses.submitButton}
+                  disabled={calculateRemainingAmount() <= 0}
+                >
+                  Update Payment
+                </button>
+              </div>
             </form>
-          </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className={formClasses.label}>Supplier Name *</label>
+                  <input
+                    type="text"
+                    {...register('supplierName', { required: true })}
+                    className={formClasses.input}
+                  />
+                </div>
+                
+                <div className="col-span-2">
+                  <label className={formClasses.label}>Supplier Address</label>
+                  <textarea
+                    {...register('supplierAddress')}
+                    className={formClasses.input}
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className={formClasses.label}>Invoice Number</label>
+                  <input
+                    type="text"
+                    {...register('invoiceNumber')}
+                    className={`${formClasses.input} bg-gray-50`}
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className={formClasses.label}>Purchase Date *</label>
+                  <input
+                    type="date"
+                    {...register('date')}
+                    className={formClasses.input}
+                    defaultValue={convertToInputDate(getCurrentDate())}
+                  />
+                </div>
+              </div>
+
+              {/* Items Section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className={formClasses.label}>Items *</label>
+                  <button
+                    type="button"
+                    onClick={() => append({
+                      productName: '',
+                      bagSize: '',
+                      pricePerQuintal: '',
+                      quantity: ''
+                    })}
+                    className="inline-flex items-center text-sm text-indigo-600"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Item
+                  </button>
+                </div>
+
+                {fields.map((field, index) => renderItemFields(index))}
+              </div>
+
+              {/* Running Totals */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Weight</p>
+                    <p className="text-lg font-bold">{runningTotals.weight.toFixed(2)} kg</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">Total Amount</p>
+                    <p className="text-lg font-bold">₹{runningTotals.amount.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Details */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-medium mb-4">Payment Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={formClasses.label}>Initial Payment</label>
+                    <input
+                      type="number"
+                      {...register('initialPayment')}
+                      className={formClasses.input}
+                    />
+                  </div>
+                  <div>
+                    <label className={formClasses.label}>Payment Method</label>
+                    <select
+                      {...register('paymentMethod')}
+                      className={formClasses.select}
+                    >
+                      <option value="CASH">Cash</option>
+                      <option value="UPI">UPI</option>
+                      <option value="BANK_TRANSFER">Bank Transfer</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className={formClasses.cancelButton}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={formClasses.submitButton}
+                >
+                  Create Purchase
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

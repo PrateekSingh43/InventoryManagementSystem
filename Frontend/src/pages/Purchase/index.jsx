@@ -60,8 +60,13 @@ const Purchase = () => {
     });
   };
 
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingPurchase(null);
+  };
+
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 relative">
       {/* Credit Summary */}
       <TotalCreditSummary />
 
@@ -151,15 +156,15 @@ const Purchase = () => {
 
       {/* Purchase Form Modal */}
       {showForm && (
-        <PurchaseForm
-          initialData={editingPurchase}
-          isEdit={!!editingPurchase}
-          onClose={() => {
-            setShowForm(false);
-            setEditingPurchase(null);
-          }}
-        />
+        <div className="fixed inset-0 z-50">
+          <PurchaseForm
+            initialData={editingPurchase}
+            isEdit={!!editingPurchase}
+            onClose={handleCloseForm}
+          />
+        </div>
       )}
+
     </div>
   );
 };

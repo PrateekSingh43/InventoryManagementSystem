@@ -1,45 +1,13 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { useAppContext } from '../../context/AppContext';
-import { formatDisplayDate } from '../../utils/dateUtils';
-
-const formatCurrency = (value) => {
-  if (value == null || isNaN(value)) return '₹0';
-  return `₹${parseFloat(value).toLocaleString('en-IN')}`;
-};
+import { formatCurrency } from '../../utils/currencyUtils';
+import { formatDate, formatForDisplay } from '../../utils/dateUtils';
 
 const PurchaseCard = ({ purchase, onEdit }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { setPurchase } = useAppContext();
-
-  // Safe date formatter
-  const formatDate = (dateString) => {
-    try {
-      if (!dateString) return 'N/A';
-      
-      // Handle dd-mm-yyyy format
-      if (dateString.includes('-')) {
-        const [day, month, year] = dateString.split('-');
-        const date = new Date(year, parseInt(month) - 1, day);
-        if (!isNaN(date.getTime())) {
-          return format(date, 'dd MMM yyyy');
-        }
-      }
-
-      // Handle other formats
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return format(date, 'dd MMM yyyy');
-      }
-
-      return dateString;
-    } catch (error) {
-      console.error('Date formatting error:', error);
-      return dateString;
-    }
-  };
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -57,7 +25,6 @@ const PurchaseCard = ({ purchase, onEdit }) => {
     }
   };
 
-  // Safe payment history renderer
   const getPaymentHistoryElement = () => (
     <div className="space-y-2">
       {(purchase.paymentHistory || []).map((payment, idx) => (
@@ -81,7 +48,6 @@ const PurchaseCard = ({ purchase, onEdit }) => {
     </div>
   );
 
-  // Modified getItemsSummary
   const getItemsSummary = () => {
     if (!Array.isArray(purchase.items) || purchase.items.length === 0) {
       return (
@@ -133,7 +99,6 @@ const PurchaseCard = ({ purchase, onEdit }) => {
     );
   };
 
-  // Modified supplier info display
   const getSupplierInfo = () => (
     <div className="mb-3">
       <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -145,7 +110,6 @@ const PurchaseCard = ({ purchase, onEdit }) => {
     </div>
   );
 
-  // Add proper payment calculation
   const getTotalPaid = () => {
     return (purchase.paymentHistory || [])
       .reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
@@ -158,16 +122,14 @@ const PurchaseCard = ({ purchase, onEdit }) => {
 
   return (
     <div className="flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow">
-      {/* Main Content */}
       <div className="p-4">
-        {/* Header with Order Number and Date */}
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Order #{purchase.orderNumber || 'N/A'}
             </h3>
             <p className="text-sm text-gray-500">
-              {formatDisplayDate(purchase.date)}
+              {formatForDisplay(purchase.date)}
             </p>
           </div>
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(purchase.status)}`}>
@@ -175,17 +137,14 @@ const PurchaseCard = ({ purchase, onEdit }) => {
           </span>
         </div>
 
-        {/* Updated Supplier Info */}
         {getSupplierInfo()}
 
-        {/* Items Summary */}
         {getItemsSummary()}
 
-        {/* Amounts */}
         <div className="mt-3 grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500">Total Amount:</p>
-            <p className="text-lg font-bold text-gray-900 dark:text-white">
+            <p className="text-lg font-bold">
               {formatCurrency(purchase.totalAmount)}
             </p>
           </div>
@@ -198,10 +157,8 @@ const PurchaseCard = ({ purchase, onEdit }) => {
         </div>
       </div>
 
-      {/* Expanded Content */}
       {isExpanded && (
         <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-          {/* Remove supplier address section and only keep payment history */}
           <div className="mb-4">
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
               Payment History
@@ -209,7 +166,6 @@ const PurchaseCard = ({ purchase, onEdit }) => {
             {getPaymentHistoryElement()}
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end space-x-2">
             <button
               onClick={() => onEdit(purchase)}
@@ -227,7 +183,6 @@ const PurchaseCard = ({ purchase, onEdit }) => {
         </div>
       )}
 
-      {/* View More/Less Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full p-2 text-sm text-indigo-600 dark:text-indigo-400 border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-b-xl flex items-center justify-center"

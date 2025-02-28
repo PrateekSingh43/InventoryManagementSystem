@@ -2,7 +2,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { mockCustomers, mockSales, mockSuppliers } from './initialData';
 import { generatePurchaseInvoiceNumber, generateSupplierInvoiceSeries } from '../utils/invoiceGenerator';
-import { formatDateForDisplay } from '../utils/dateUtils';
+import { 
+  formatDate,
+  formatDisplayDate, // This is now available
+  getCurrentDate 
+} from '../utils/dateUtils';
 
 const AppContext = createContext();
 
@@ -207,7 +211,7 @@ export const AppProvider = ({ children }) => {
       const formattedPurchase = {
         ...purchaseData,
         id: Date.now().toString(),
-        date: formatDateForDisplay(purchaseData.date),
+        date: formatDisplayDate(purchaseData.date),
         totalAmount: parseFloat(purchaseData.totalAmount),
         initialPayment: parseFloat(purchaseData.initialPayment) || 0,
         status: purchaseData.status

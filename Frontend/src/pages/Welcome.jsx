@@ -1,37 +1,59 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import AuthLayout from '../context/AuthLayout';
 
 const Welcome = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 flex flex-col items-center justify-center p-4">
-      <div className="text-center space-y-8 max-w-2xl">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-          Welcome to KLS Enterprises
-        </h1>
-        
-        <p className="text-xl text-gray-600 mt-4">
-          Inventory Management System
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-          <Link
-            to="/login"
-            className="inline-flex items-center px-6 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-          >
-            Login
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+    <AuthLayout
+      title="Welcome to KLS Enterprise"
+      subtitle="Streamlining Inventory Management with Efficiency"
+      imageSrc="/assets/warehouse.jpg"
+    >
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-6"
+        >
+          <h2 className="text-3xl font-bold text-gray-900 text-center">
+            Get Started
+          </h2>
+          <p className="text-gray-600 text-center max-w-sm mx-auto">
+            Manage your inventory efficiently with our comprehensive system
+          </p>
           
-          <Link
-            to="/signup"
-            className="inline-flex items-center px-6 py-3 rounded-lg border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition-colors"
-          >
-            Create Account
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
-        </div>
+          <div className="space-y-4">
+            <Link
+              to="/login"
+              className="flex items-center justify-center w-full px-8 py-3 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all duration-150 hover:shadow-lg transform hover:scale-[1.02]"
+            >
+              Login to Your Account
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+            
+            <Link
+              to="/signup"
+              className="flex items-center justify-center w-full px-8 py-3 text-base font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg border-2 border-transparent hover:border-indigo-600 transition-all duration-150"
+            >
+              Create New Account
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              By continuing, you agree to our{' '}
+              <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                Terms of Service
+              </a>
+            </p>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

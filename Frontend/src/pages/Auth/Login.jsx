@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import AuthLayout from '../../components/Auth/AuthLayout'; // Updated import path
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,7 +16,7 @@ const Login = () => {
     try {
       setIsLoading(true);
       
-      await login(data.email, data.password);
+      await login(data.email, data.password, data.role); // Pass the role
 
       toast.success('Login successful');
       
@@ -30,21 +32,19 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
-              create a new account
-            </Link>
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+    <AuthLayout
+      title="Welcome Back!"
+      subtitle="Log in to manage your inventory efficiently"
+      imageSrc="/assets/login-bg.jpg"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8"
+      >
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign in to your account</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <input
@@ -81,23 +81,39 @@ const Login = () => {
               )}
             </div>
           </div>
-
           <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Account Type
+            </label>
+            <select
+              {...register('role', { required: true })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value="manager">Manager</option>
+              <option value="boss">Boss</option>
+            </select>
+          </div>
+          <div className="space-y-4">
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                isLoading 
-                  ? 'bg-indigo-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700'
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 transform hover:scale-[1.02]"
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
+
+            <p className="text-center">
+              <Link
+                to="/signup"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Don't have an account? Sign up
+              </Link>
+            </p>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </AuthLayout>
   );
 };
 

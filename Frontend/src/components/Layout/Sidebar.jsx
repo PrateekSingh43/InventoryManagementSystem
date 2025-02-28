@@ -1,70 +1,68 @@
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  Package, 
+  Home, 
   ShoppingCart, 
   Users, 
-  Boxes,
-  ClipboardList,
-  Settings,
-  X
+  Truck,
+  Menu,
+  TrendingUp,
+  Package
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   
-  // Menu items configuration
-  const menuItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { title: 'Products', icon: Package, path: '/products' },
-    { title: 'Sales', icon: ShoppingCart, path: '/sales' },
-    { title: 'Customers', icon: Users, path: '/customers' },
-    { title: 'Stock', icon: Boxes, path: '/stock' },
-    { title: 'Purchase', icon: ClipboardList, path: '/purchase' },
-    { title: 'Settings', icon: Settings, path: '/settings' }
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Purchase', href: '/purchase', icon: ShoppingCart },
+    { name: 'Sales', href: '/sales', icon: Package },
+    { name: 'Rate Chart', href: '/rate-chart', icon: TrendingUp },
+    { name: 'Customers', href: '/customers', icon: Users },
+    { name: 'Suppliers', href: '/suppliers', icon: Truck }
   ];
 
   return (
-    <div className="flex h-full flex-col bg-white border-r border-gray-200">
+    <div className="flex h-full flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
       {/* Logo section */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
         <Link 
           to="/dashboard" 
           className="flex items-center space-x-3"
         >
-          <span className="text-xl font-semibold text-indigo-600">KLS Enterprise</span>
+          <span className="text-xl font-semibold text-indigo-600 dark:text-indigo-400">KLS Enterprise</span>
         </Link>
         <button 
           onClick={onClose}
           className="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100"
         >
-          <X className="h-5 w-5" />
+          <Menu className="h-6 w-6" />
         </button>
       </div>
 
       {/* Navigation section */}
       <div className="flex-1 flex flex-col overflow-y-auto">
         <nav className="flex-1 space-y-1 px-2 py-4">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+          {navigation.map((item) => {
+            const isActive = location.pathname === item.href;
             return (
               <Link
-                key={item.path}
-                to={item.path}
+                key={item.href}
+                to={item.href}
                 className={`
                   group flex items-center px-3 py-2 text-sm font-medium rounded-md
                   ${isActive 
-                    ? 'bg-indigo-50 text-indigo-600' 
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600'
+                    ? 'bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-200' 
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }
                 `}
               >
                 <item.icon 
                   className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                    isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600'
+                    isActive ? 'text-indigo-600 dark:text-indigo-200' : 'text-gray-400 dark:text-gray-500'
                   }`}
                 />
-                {item.title}
+                {item.name}
               </Link>
             );
           })}

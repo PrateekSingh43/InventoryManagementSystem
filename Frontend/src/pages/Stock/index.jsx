@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React , { useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { stockState } from '../../store/atoms';
 import { ArrowRight, Trash2 } from 'lucide-react';

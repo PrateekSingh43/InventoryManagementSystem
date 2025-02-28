@@ -1,8 +1,11 @@
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import AuthLayout from '../../context/AuthLayout';
 
 const Signup = () => {
-  const { register, handleSubmit,  formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
@@ -16,22 +19,19 @@ const Signup = () => {
   };
 
   return (
-    <> 
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+    <AuthLayout
+      title="Create an Account"
+      subtitle="Join us to streamline your inventory management"
+      imageSrc="/assets/signup-bg.jpg"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8"
+      >
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign up</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -76,7 +76,7 @@ const Signup = () => {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
+                <option value="boss">Boss</option>
               </select>
             </div>
 
@@ -101,18 +101,26 @@ const Signup = () => {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-4">
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 transform hover:scale-[1.02]"
             >
               Create Account
             </button>
+
+            <p className="text-center">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Already have an account? Sign in
+              </Link>
+            </p>
           </div>
         </form>
-      </div>
-    </div>
-    </>
+      </motion.div>
+    </AuthLayout>
   );
 };
 

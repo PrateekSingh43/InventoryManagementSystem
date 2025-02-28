@@ -1,29 +1,35 @@
-export const mockProducts = [
+export const mockSales = [];
+export const mockCustomers = [];
+
+export const mockSuppliers = [
   {
     id: '1',
-    name: 'Rice',
-    variants: [
-      { id: '1-1', bagSize: 25, currentStock: 100, minimumStock: 50 }
-    ]
+    name: 'Balgaria Food LLP',
+    address: 'Sample Address',
+    contact: '1234567890',
+    openingBalance: 0,
+    transactions: []
   }
 ];
 
-export const mockCustomers = [
-  {
-    id: '1',
-    name: 'John Doe',
-    type: 'regular',
-    phone: '1234567890'
-  }
-];
+export const DEFAULT_SUPPLIER = {
+  name: '',
+  address: '',
+  contact: '',
+  openingBalance: 0,
+  transactions: []
+};
 
-export const mockSales = [
-  {
-    id: '1',
-    invoiceNumber: 'INV-001',
-    customerName: 'John Doe',
-    date: new Date().toISOString(),
-    totalAmount: 5000,
-    status: 'PAID'
-  }
-];
+export const DEFAULT_PURCHASE_ORDER = {
+  supplierId: '',
+  purchaseDate: new Date().toISOString().split('T')[0],
+  invoiceNumber: '',
+  products: [],
+  totalAmount: 0,
+  initialPayment: 0,
+  paymentHistory: [],
+  remainingAmount: 0,
+  status: 'UNPAID'
+};
+
+export const mockPurchases = [];

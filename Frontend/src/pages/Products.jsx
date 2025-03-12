@@ -1,36 +1,23 @@
-import  React ,  {useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
-import ProductForm from '../components/Products/ProductForm';
+import { useAppContext } from "../context/AppContext";
+// Remove the following line:
+// import ProductForm from "../components/Products/ProductForm";
+// Instead, import the pre-defined product list from the data folder:
+import { productsList } from '../data/productsList';
 
 const Products = () => {
-  const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { products, setProducts } = useAppContext();
-  const navigate = useNavigate();
-
-  const filteredProducts = products.filter(product =>
+  // Since these products are pre-defined, we use productsList directly.
+  const filteredProducts = productsList.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(product => product.id !== id));
-    }
-  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </button>
+        {/* Removed add product button */}
       </div>
 
       <div className="flex items-center px-4 py-2 border rounded-md bg-white">
@@ -58,26 +45,14 @@ const Products = () => {
                   </p>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <button
-                    onClick={() => navigate(`/products/${product.id}`)}
-                    className="text-indigo-600 hover:text-indigo-900"
-                  >
-                    <Edit className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                  {/* Optionally, edit and delete buttons can be removed or hidden */}
                 </div>
               </div>
             </li>
           ))}
         </ul>
       </div>
-
-      {showForm && <ProductForm onClose={() => setShowForm(false)} />}
+      {/* Removed ProductForm rendering */}
     </div>
   );
 };

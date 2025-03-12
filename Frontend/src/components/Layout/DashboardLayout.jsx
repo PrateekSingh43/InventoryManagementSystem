@@ -1,30 +1,34 @@
-import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Dashboard from '../../pages/Dashboard';
+import RateChart from '../../pages/RateChart';
 import Sales from '../../pages/Sales';
-import Customers from '../../pages/Customers';
-import Suppliers from '../../pages/Suppliers';
 import Purchase from '../../pages/Purchase';
-import RateChart from '../../pages/RateChart'; // New RateChart page
+import Suppliers from '../../pages/Suppliers';
+import Customers from '../../pages/Customers';
+import SupplierDetails from '../../pages/Suppliers/SupplierDetails';
 
 const DashboardLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const { theme } = useTheme();
+  
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-100 dark:bg-dark-primary">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className={`h-screen flex overflow-hidden ${theme.background.tertiary}`}>
+      <Sidebar />
       <div className="flex-1 overflow-auto">
-        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="p-6">
+        <Header />
+        <main className={`p-6 ${theme.background.tertiary}`}>
           <Routes>
+            <Route path="/" element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="sales/*" element={<Sales />} />
-            <Route path="customers/*" element={<Customers />} />
-            <Route path="suppliers/*" element={<Suppliers />} />
-            <Route path="purchase/*" element={<Purchase />} />
             <Route path="rate-chart" element={<RateChart />} />
+            <Route path="sales/*" element={<Sales />} />
+            <Route path="purchase/*" element={<Purchase />} />
+            <Route path="suppliers/*" element={<Suppliers />} />
+            <Route path="suppliers/:id/details" element={<SupplierDetails />} />
+            <Route path="customers/*" element={<Customers />} />
           </Routes>
         </main>
       </div>

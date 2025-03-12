@@ -1,43 +1,35 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import * as AppContext from './context/AppContext.jsx'; // Use explicit extension and import all
 import { AuthProvider } from './context/AuthContext';
-import { AppProvider } from './context/AppContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Auth/Login';
-import Signup from './pages/Auth/Signup';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import PrivateRoute from './components/PrivateRoute';
-import Purchase from './pages/Purchase';  // Add this import
 
-const App = () => {
+function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppProvider>
+    <AppContext.AppProvider>
+      <BrowserRouter>
+        <AuthProvider>
           <ThemeProvider>
-            <Toaster position="top-right" />
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route
-                path="/*"
-                element={
+            <div className="app">
+              <Toaster position="top-right" />
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/*" element={
                   <PrivateRoute>
                     <DashboardLayout />
                   </PrivateRoute>
-                }
-              >
-                <Route path="purchase" element={<Purchase />} />
-                {/* Dashboard routes will be nested here by DashboardLayout */}
-              </Route>
-            </Routes>
+                } />
+              </Routes>
+            </div>
           </ThemeProvider>
-        </AppProvider>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </AppContext.AppProvider>
   );
-};
+}
 
 export default App;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { X } from 'lucide-react';
+import { X, HelpCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAppContext } from '../../../context/AppContext';
 
@@ -20,14 +20,19 @@ const SupplierForm = ({ onClose, initialData }) => {
 
   const onSubmit = (data) => {
     try {
-      setSuppliers(prev => {
-        const newSupplier = {
-          id: initialData?.id || Date.now().toString(),
-          ...data,
-          openingBalance: parseFloat(data.openingBalance) || 0,
-          createdAt: initialData?.createdAt || new Date().toISOString()
-        };
+      const newSupplier = {
+        id: initialData?.id || Date.now().toString(),
+        name: data.name.trim(),
+        address: data.address.trim(),
+        contact: data.contact.trim(),
+        openingBalance: parseFloat(data.openingBalance) || 0,
+        gstNumber: data.gstNumber.trim(),
+        notes: data.notes.trim(),
+        transactions: initialData?.transactions || [],
+        createdAt: initialData?.createdAt || new Date().toISOString()
+      };
 
+      setSuppliers(prev => {
         if (initialData) {
           return prev.map(s => s.id === initialData.id ? newSupplier : s);
         }
@@ -86,13 +91,42 @@ const SupplierForm = ({ onClose, initialData }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Opening Balance</label>
-            <input
-              type="number"
-              {...register('openingBalance')}
-              className="w-full rounded-md border-gray-300"
-              placeholder="0.00"
-            />
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium mb-1">Opening Balance</label>
+              <button
+                type="button"
+                className="text-gray-400 hover:text-gray-600"
+                onClick={() => {
+                  toast.info(
+                    "Opening Balance: Initial amount from previous transactions.\n" +
+                    "Positive: Amount you owe to supplier\n" +
+                    "Zero: Fresh start, no pending amounts\n" +
+                    "Negative: Amount supplier owes you", 
+                    { duration: 6000 }
+                  );
+                }}
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                {...register('balanceType')}
+                className="w-32 rounded-md border-gray-300 dark:border-gray-600"
+              >
+                <option value="payable">Payable to</option>
+                <option value="receivable">Receivable from</option>
+              </select>
+              <input
+                type="number"
+                {...register('openingBalance')}
+                className="flex-1 rounded-md border-gray-300 dark:border-gray-600"
+                placeholder="Enter amount (0 if none)"
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Leave as 0 if starting fresh with this supplier
+            </p>
           </div>
 
           <div>

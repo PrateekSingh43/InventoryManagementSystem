@@ -1,141 +1,224 @@
-import React, { useState } from 'react';
-import { Calculator as CalculatorIcon, X, Clock, Trash2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Calculator as CalculatorIcon, History, Trash2 } from 'lucide-react';
 
 const Calculator = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [display, setDisplay] = useState('0');
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
-
-  const handleNumber = (num) => {
-    setDisplay(display === '0' ? String(num) : display + num);
-  };
-
-  const handleOperator = (op) => {
-    setDisplay(display + ' ' + op + ' ');
-  };
-
-  const handleEqual = () => {
-    try {
-      // Replace × with *, ÷ with /
-      const expression = display.replace(/×/g, '*').replace(/÷/g, '/');
-      const result = eval(expression);
-      setHistory([{ expression, result }, ...history.slice(0, 9)]);
-      setDisplay(String(result));
-    } catch (error) {
-      setDisplay('Error');
-    }
-  };
-
-  const handleClear = () => {
-    setDisplay('0');
-  };
+  const calculatorRef = useRef(null);
 
   const clearHistory = () => {
     setHistory([]);
   };
 
+  // Group history by date
+  const groupedHistory = history.reduce((groups, item) => {
+    const date = new Date().toLocaleDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(item);
+    return groups;
+  }, {});
+
+  // Updated button layout
+  const buttons = [
+    { label: 'C', type: 'clear', className: 'bg-red-100 text-red-600' },
+    { label: '⌫', type: 'backspace', className: 'bg-gray-100' },
+    { label: '.', type: 'decimal' },
+    { label: '÷', type: 'operator', className: 'bg-indigo-100 text-indigo-600', key: '/' },
+    { label: '7', type: 'number', key: '7' },
+    { label: '8', type: 'number', key: '8' },
+    { label: '9', type: 'number', key: '9' },
+    { label: '×', type: 'operator', className: 'bg-indigo-100 text-indigo-600', key: '*' },
+    { label: '4', type: 'number', key: '4' },
+    { label: '5', type: 'number', key: '5' },
+    { label: '6', type: 'number', key: '6' },
+    { label: '-', type: 'operator', className: 'bg-indigo-100 text-indigo-600', key: '-' },
+    { label: '1', type: 'number', key: '1' },
+    { label: '2', type: 'number', key: '2' },
+    { label: '3', type: 'number', key: '3' },
+    { label: '+', type: 'operator', className: 'bg-indigo-100 text-indigo-600', key: '+' },
+    { label: '0', type: 'number', key: '0', className: 'col-span-2' },
+    { label: '=', type: 'equals', className: 'bg-indigo-600 text-white col-span-2', key: 'Enter' }
+  ];
+
+  const buttonClasses = {
+    default: 'text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700',
+    operator: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300',
+    clear: 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300',
+    equals: 'bg-indigo-600 dark:bg-indigo-500 text-white',
+    history: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+  };
+
+  // Keyboard handler
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (!isOpen) return;
+
+      e.preventDefault();
+      const key = e.key;
+
+      // Find matching button
+      const button = buttons.find(b => b.key === key);
+      if (button) {
+        handleClick(button);
+        return;
+      }
+
+      // Handle other special keys
+      switch (key) {
+        case 'Escape':
+          setDisplay('0');
+          break;
+        case 'Backspace':
+          handleClick({ type: 'backspace' });
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isOpen, display]);
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (calculatorRef.current && !calculatorRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleClick = (button) => {
+    switch (button.type) {
+      case 'number':
+      case 'decimal':
+        setDisplay(prev => {
+          if (prev === '0' && button.type === 'number') return button.label;
+          if (button.type === 'decimal' && prev.includes('.')) return prev;
+          return prev + button.label;
+        });
+        break;
+      case 'operator':
+        setDisplay(prev => prev + ` ${button.label} `);
+        break;
+      case 'equals':
+        try {
+          const expression = display.replace(/×/g, '*').replace(/÷/g, '/');
+          const result = eval(expression);
+          setHistory(prev => [{ expression: display, result }, ...prev.slice(0, 9)]);
+          setDisplay(result.toString());
+        } catch (error) {
+          setDisplay('Error');
+        }
+        break;
+      case 'clear':
+        setDisplay('0');
+        break;
+      case 'backspace':
+        setDisplay(prev => prev.length > 1 ? prev.slice(0, -1) : '0');
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <div className="relative">
+    <div className="relative" ref={calculatorRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+        className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        title="Calculator"
       >
         <CalculatorIcon className="h-5 w-5" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium">Calculator</h3>
+        <div className="absolute right-0 mt-2 z-50">
+          <div className="w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+            {/* Header with history toggle */}
+            <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
               >
-                <Clock className="h-4 w-4" />
+                <History className="h-4 w-4" />
+                {showHistory && <span className="text-sm">Last 30 Days</span>}
               </button>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {showHistory ? (
-            <div className="p-2">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="text-sm font-medium">History</h4>
+              <h3 className="text-sm font-medium">Calculator</h3>
+              {showHistory ? (
                 <button
                   onClick={clearHistory}
-                  className="p-1 text-gray-500 hover:text-gray-700"
+                  className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-              </div>
-              <div className="space-y-1 max-h-64 overflow-y-auto">
-                {history.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">No history</p>
-                ) : (
-                  history.map((item, index) => (
-                    <div
-                      key={index}
-                      className="text-sm p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer"
-                      onClick={() => setDisplay(String(item.result))}
-                    >
-                      <div className="text-gray-500">{item.expression}</div>
-                      <div className="font-medium">{item.result}</div>
-                    </div>
-                  ))
-                )}
-              </div>
+              ) : (
+                <div className="w-8" />
+              )}
             </div>
-          ) : (
-            <>
-              <div className="p-2">
-                <input
-                  type="text"
-                  className="w-full p-2 text-right text-lg font-mono bg-gray-50 dark:bg-gray-700 rounded"
-                  value={display}
-                  readOnly
-                />
-              </div>
 
-              <div className="p-2 grid grid-cols-4 gap-1">
-                {/* First row */}
-                <button onClick={handleClear} className="calc-btn col-span-2 bg-red-100 hover:bg-red-200 text-red-600">C</button>
-                <button onClick={() => handleOperator('÷')} className="calc-btn bg-gray-100">÷</button>
-                <button onClick={() => handleOperator('×')} className="calc-btn bg-gray-100">×</button>
+            {/* Display section always visible */}
+            <div className="p-3 bg-gray-50 dark:bg-gray-800">
+              <div className="text-right text-xl font-light truncate text-gray-900 dark:text-white">{display}</div>
+            </div>
 
-                {/* Number pad */}
-                {[7, 8, 9, 4, 5, 6, 1, 2, 3].map(num => (
-                  <button
-                    key={num}
-                    onClick={() => handleNumber(num)}
-                    className="calc-btn"
-                  >
-                    {num}
-                  </button>
-                ))}
-
-                {/* Operators */}
-                <button onClick={() => handleOperator('-')} className="calc-btn bg-gray-100">-</button>
-                <button onClick={() => handleNumber('0')} className="calc-btn">0</button>
-                <button onClick={() => handleNumber('.')} className="calc-btn">.</button>
-                <button onClick={() => handleOperator('+')} className="calc-btn bg-gray-100">+</button>
-
-                {/* Equal button */}
-                <button
-                  onClick={handleEqual}
-                  className="calc-btn col-span-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-600"
-                >
-                  =
-                </button>
-              </div>
-            </>
-          )}
+            {/* Conditional render of history or keypad */}
+            <div className="max-h-[400px] overflow-y-auto">
+              {showHistory ? (
+                <div className="grid grid-cols-4 gap-0.5 p-1">
+                  {Object.entries(groupedHistory)
+                    .slice(0, 30) // Last 30 days
+                    .map(([date, items]) => (
+                      <React.Fragment key={date}>
+                        {/* Date header spans full width */}
+                        <div className="col-span-4 px-3 py-2 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
+                          {date}
+                        </div>
+                        {/* History items in grid */}
+                        {items.map((item, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              setDisplay(item.result.toString());
+                              setShowHistory(false);
+                            }}
+                            className="p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors col-span-4"
+                          >
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{item.expression}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{item.result}</div>
+                          </button>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-0.5 p-1">
+                  {buttons.map((button, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleClick(button)}
+                      className={`
+                        p-3 text-sm font-medium rounded
+                        hover:opacity-80 transition-opacity
+                        ${buttonClasses[button.type] || buttonClasses.default}
+                        ${button.label === '0' ? 'col-span-2' : ''}
+                      `}
+                    >
+                      {button.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
-export const productsList = [
+// This file replaces the old products.js and exports the products list along with a helper
+export const products = [
   { id: 1, name: "Gura Bhusi", bagSizes: [40] },
   { id: 2, name: "Bhusi", bagSizes: [37] },
   { id: 3, name: "Bhusi (Patta Bhusi)", bagSizes: [34] },
@@ -22,5 +23,14 @@ export const productsList = [
   { id: 21, name: "Sawasi (Zhara)", bagSizes: [40, 45] }
 ];
 
-// Common bag sizes for quick access
-export const bagSizes = [25, 30, 32, 34, 35, 37, 40, 45, 50, 55, 60];
+// Simple helper function - returns object with name and weights array
+export const getProductsGroupedByName = () => {
+  const groups = {};
+  products.forEach(product => {
+    groups[product.name] = {
+      name: product.name,
+      weights: product.bagSizes
+    };
+  });
+  return groups;
+};

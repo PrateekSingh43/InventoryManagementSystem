@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
 const TotalCreditSummary = () => {
-  const { purchase = [] } = useAppContext(); // Add default empty array
+  const { purchase = [] } = useAppContext();
   
-  const totalCredit = (purchase || []).reduce((sum, order) => {
-    return sum + (order?.remainingAmount || 0);
-  }, 0);
+  const totalCredit = useMemo(() => {
+    return purchase.reduce((total, order) => {
+      const remainingAmount = order.remainingAmount || 0;
+      return total + remainingAmount;
+    }, 0);
+  }, [purchase]);
   
   return (
-    <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-sm">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-        Total Credit: ₹{totalCredit.toLocaleString()}
-      </h2>
+    <div className="w-64 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Outstanding
+          </h3>
+          <p className="text-lg font-bold text-red-600 dark:text-red-400 mt-1">
+            ₹{totalCredit.toLocaleString()}
+          </p>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {purchase.length} orders
+        </p>
+      </div>
     </div>
   );
 };

@@ -1,10 +1,12 @@
 import React from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { IndianRupee, DollarSign } from 'lucide-react';
-import RateChartCard from './RateChartCard';
+import { IndianRupee, DollarSign, ArrowRight } from 'lucide-react';
+import RateChart from '../../components/Dashboard/RateChart';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { sales } = useAppContext();
+  const navigate = useNavigate();
 
   // Calculate today's metrics
   const today = new Date().toISOString().split('T')[0];
@@ -31,11 +33,20 @@ const Dashboard = () => {
         <DashboardCard
           title="Pending Payments"
           value={`₹${pendingPayments.toLocaleString()}`}
-          icon={IndianRupee}
+          icon={DollarSign}
           color="yellow"
         />
         {/* Rate Chart Card */}
-        <RateChartCard />
+        <div
+          onClick={() => navigate('/ratechart')}
+          className="cursor-pointer bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow p-4"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Rate Chart</h2>
+            <ArrowRight className="h-5 w-5 text-gray-400" />
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">View and manage product rates</p>
+        </div>
       </div>
 
       {/* Recent Activity */}

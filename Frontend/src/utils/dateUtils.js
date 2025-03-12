@@ -1,65 +1,51 @@
-import { format, isToday, isYesterday } from 'date-fns';
+// src/utils/dateUtility.js
 
-// Parse dd-MM-yyyy date string to Date object
-const parseIndianDate = (dateString) => {
+import { format, parse, isValid } from 'date-fns';
+
+// Core date format for the entire application
+export const DATE_FORMAT = 'dd-MM-yyyy';
+
+// Parse any date string to Date object
+export const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+  
   try {
-    if (!dateString) return new Date();
-    const [day, month, year] = dateString.split('-');
-    return new Date(year, month - 1, day);
+    // Handle dd-MM-yyyy format
+    if (dateString.includes('-')) {
+      const [day, month, year] = dateString.split('-');
+      return new Date(year, month - 1, day);
+    }
+    return new Date(dateString);
   } catch (error) {
     console.error('Date parsing error:', error);
     return new Date();
   }
 };
 
-// Format date as dd-MM-yyyy
-export const formatDate = (dateString) => {
+// Format date for display (dd-MM-yyyy)
+export const formatDate = (date) => {
   try {
-    const date = parseIndianDate(dateString);
-    return format(date, 'dd-MM-yyyy');
+    const parsedDate = typeof date === 'string' ? parseDate(date) : date;
+    return format(parsedDate, DATE_FORMAT);
   } catch (error) {
-    return format(new Date(), 'dd-MM-yyyy');
+    console.error('Date formatting error:', error);
+    return format(new Date(), DATE_FORMAT);
   }
 };
 
-// Display date with relative terms (Today, Yesterday, etc.)
-export const formatForDisplay = (dateString) => {
-  try {
-    const date = parseIndianDate(dateString);
-    if (isToday(date)) return 'Today';
-    if (isYesterday(date)) return 'Yesterday';
-    return format(date, 'dd-MM-yyyy');
-  } catch {
-    return dateString || getCurrentDate();
-  }
+// Format date for storage (always dd-MM-yyyy)
+export const formatForStorage = (date) => {
+  return formatDate(date);
 };
 
 // Get current date in dd-MM-yyyy format
 export const getCurrentDate = () => {
-  return format(new Date(), 'dd-MM-yyyy');
+  return format(new Date(), DATE_FORMAT);
 };
 
-// Convert HTML input date (yyyy-MM-dd) to Indian format (dd-MM-yyyy)
-export const convertFromInputDate = (inputDate) => {
-  try {
-    if (!inputDate) return getCurrentDate();
-    const [year, month, day] = inputDate.split('-');
-    return `${day}-${month}-${year}`;
-  } catch {
-    return getCurrentDate();
-  }
+// Validate if string is in correct dd-MM-yyyy format
+export const isValidDateFormat = (dateString) => {
+  if (!dateString) return false;
+  const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+  return regex.test(dateString);
 };
-
-// Convert Indian format (dd-MM-yyyy) to HTML input format (yyyy-MM-dd)
-export const convertToInputDate = (dateString) => {
-  try {
-    if (!dateString) return format(new Date(), 'yyyy-MM-dd');
-    const [day, month, year] = dateString.split('-');
-    return `${year}-${month}-${day}`;
-  } catch {
-    return format(new Date(), 'yyyy-MM-dd');
-  }
-};
-
-// Export everything needed
-export const formatDisplayDate = formatForDisplay;

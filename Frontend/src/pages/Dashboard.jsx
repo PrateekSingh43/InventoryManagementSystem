@@ -1,11 +1,10 @@
 import React from 'react';
-import { useAppContext } from '../context/AppContext';
+import * as AppContext from '../context/AppContext.jsx'; // Use explicit extension and import all
 import { DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import RateChartCard from '../components/Dashboard/RateChartCard';
 
 const Dashboard = () => {
-  const { sales } = useAppContext();
+  const { purchase, sales } = AppContext.useAppContext();
   const navigate = useNavigate();
 
   // Compute today's sales and pending payments
@@ -16,7 +15,6 @@ const Dashboard = () => {
     .filter(sale => sale.status === 'PENDING')
     .reduce((sum, sale) => sum + (sale.totalAmount - sale.paidAmount), 0);
 
-  // Only two stat items kept
   const stats = [
     {
       title: "Today's Sales",
@@ -38,7 +36,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
       
-      {/* Only two essential stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {stats.map((stat, index) => (
           <div key={index} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
@@ -59,11 +57,6 @@ const Dashboard = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Rate Chart Card */}
-      <div className="mt-6">
-        <RateChartCard />
       </div>
 
       {/* Recent Sales Section */}

@@ -1,24 +1,8 @@
+import { format } from 'date-fns';
+
 // Generate invoice number only when explicitly called (like during an order creation)
 export function generateInvoiceNumber() {
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const dateKey = `${day}${month}`; // DDMM format
-  const counterKey = `invoiceCounter_${dateKey}`;
-  
-  // Check and reset counter on day change
-  const lastDateKey = localStorage.getItem('lastInvoiceDate');
-  if (lastDateKey !== dateKey) {
-    localStorage.setItem('lastInvoiceDate', dateKey);
-    localStorage.setItem(counterKey, '-1'); // Start at -1 so first increment gives 00
-  }
-  
-  let counter = parseInt(localStorage.getItem(counterKey) || '-1', 10);
-  counter++; // Increment for new order (if already called, it won’t be re-called unless order is confirmed)
-  localStorage.setItem(counterKey, counter.toString());
-  
-  const counterStr = String(counter).padStart(2, '0');
-  return `${dateKey}${counterStr}`; // e.g., 230200, 230201, etc.
+  return getCurrentCounter();
 }
 
 // Function to reset counter for current day manually
@@ -35,14 +19,29 @@ export const resetDailyCounter = () => {
 
 // Function to check next invoice number without incrementing
 export const getCurrentCounter = () => {
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const dateKey = `${day}${month}`;
-  const counterKey = `invoiceCounter_${dateKey}`;
+  const today = new Date();
+  const datePrefix = format(today, 'ddMM'); // Gets current date as ddMM
   
-  let counter = parseInt(localStorage.getItem(counterKey) || '-1', 10);
-  return `${dateKey}${String(counter + 1).padStart(2, '0')}`;
+  // Get existing orders for today from localStorage
+  const existingPurchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+  const todaysPurchases = existingPurchases.filter(purchase => 
+    purchase.orderNumber.startsWith(datePrefix)
+  );
+
+  // If no purchases today, start from 00
+  if (todaysPurchases.length === 0) {
+    return `${datePrefix}00`;
+  }
+
+  // Get the highest number used today
+  const numbers = todaysPurchases.map(purchase => 
+    parseInt(purchase.orderNumber.slice(-2))
+  );
+  const highestNumber = Math.max(...numbers);
+  
+  // Format new number with leading zero if needed
+  const nextNumber = (highestNumber + 1).toString().padStart(2, '0');
+  return `${datePrefix}${nextNumber}`;
 };
 
 export const generatePurchaseInvoiceNumber = (currentOrders) => {

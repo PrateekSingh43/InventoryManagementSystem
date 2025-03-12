@@ -1,17 +1,29 @@
-export const darkThemeClasses = {
-  background: 'bg-gray-900',
-  foreground: 'bg-gray-800',
+export const lightTheme = {
+  background: {
+    primary: 'bg-white',
+    secondary: 'bg-gray-50',
+    tertiary: 'bg-gray-100'
+  },
   text: {
-    primary: 'text-white',
+    primary: 'text-gray-900',
+    secondary: 'text-gray-600',
+    tertiary: 'text-gray-500'
+  },
+  border: 'border-gray-200',
+  divider: 'divide-gray-200'
+};
+
+export const darkTheme = {
+  background: {
+    primary: 'bg-gray-900',
+    secondary: 'bg-gray-800',
+    tertiary: 'bg-gray-700'
+  },
+  text: {
+    primary: 'text-gray-100',
     secondary: 'text-gray-300',
-    muted: 'text-gray-400'
+    tertiary: 'text-gray-400'
   },
-  input: 'bg-gray-700 border-gray-600 text-white placeholder-gray-400',
-  button: {
-    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-200',
-    secondary: 'bg-gray-700 hover:bg-gray-600 text-white transition-colors duration-200'
-  },
-  hover: 'hover:bg-gray-700',
   border: 'border-gray-700',
   divider: 'divide-gray-700'
 };

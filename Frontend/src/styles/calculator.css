@@ -1,0 +1,14 @@
+.calculator-widget {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;
+}
+
+.calculator-widget button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calculator-widget.dark {
+  filter: hue-rotate(180deg);
+}
